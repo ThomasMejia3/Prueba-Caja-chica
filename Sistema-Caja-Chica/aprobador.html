@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <?!= include('estilos'); ?>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+  <h2>Solicitudes Pendientes</h2>
+
+  <div class="card">
+
+    <p id="contador"></p>
+    <p id="loading"></p>
+
+    <table id="tabla">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Concepto</th>
+          <th>Monto</th>
+          <th>Justificación</th>
+          <th>Correo</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <p id="mensaje"></p>
+
+  </div>
+
+</div>
+
+<script>
+
+function cargarSolicitudes() {
+  document.getElementById("loading").innerText = "Cargando solicitudes...";
+
+  google.script.run
+    .withSuccessHandler(function(datos) {
+
+      const tbody = document.querySelector("#tabla tbody");
+      const contador = document.getElementById("contador");
+      const mensaje = document.getElementById("mensaje");
+      const loading = document.getElementById("loading");
+
+      tbody.innerHTML = "";
+      loading.innerText = "";
+
+      if (!datos || datos.length === 0) {
+        contador.innerText = "No hay solicitudes pendientes";
+        mensaje.innerText = "";
+        return;
+      }
+
+      contador.innerText = "Solicitudes pendientes: " + datos.length;
+
+      datos.forEach(row => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${row[1]}</td>
+          <td>${row[2]}</td>
+          <td>$${row[3]}</td>
+          <td>${row[4]}</td>
+          <td>${row[5]}</td>
+          <td>
+            <button class="btn-aprobar" onclick="aprobar('${row[0]}', this)">
+              Aprobar
+            </button>
+
+            <button class="btn-rechazar" onclick="rechazar('${row[0]}', this)">
+              Rechazar
+            </button>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+
+    })
+    .withFailureHandler(function(error) {
+      document.getElementById("loading").innerText = "";
+      document.getElementById("mensaje").innerText =
+        "Error cargando solicitudes: " + error.message;
+    })
+    .obtenerPendientes();
+}
+
+function aprobar(id, btn) {
+  if (!confirm("¿Deseas aprobar esta solicitud?")) return;
+
+  btn.disabled = true;
+
+  google.script.run
+    .withSuccessHandler(function() {
+      document.getElementById("mensaje").innerText =
+        "Solicitud aprobada correctamente";
+      cargarSolicitudes();
+    })
+    .withFailureHandler(function(error) {
+      document.getElementById("mensaje").innerText =
+        "Error al aprobar: " + error.message;
+      btn.disabled = false;
+    })
+    .aprobarSolicitud(id);
+}
+
+function rechazar(id, btn) {
+  if (!confirm("¿Deseas rechazar esta solicitud?")) return;
+
+  btn.disabled = true;
+
+  google.script.run
+    .withSuccessHandler(function() {
+      document.getElementById("mensaje").innerText =
+        "Solicitud rechazada correctamente";
+      cargarSolicitudes();
+    })
+    .withFailureHandler(function(error) {
+      document.getElementById("mensaje").innerText =
+        "Error al rechazar: " + error.message;
+      btn.disabled = false;
+    })
+    .rechazarSolicitud(id);
+}
+
+setInterval(cargarSolicitudes, 5000);
+cargarSolicitudes();
+
+</script>
+
+</body>
+</html>

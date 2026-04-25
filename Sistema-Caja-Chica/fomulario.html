@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <?!= include('estilos'); ?>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+  <h2>Registro de Gastos</h2>
+
+  <form id="form" class="card">
+
+    <label for="fecha">Fecha</label>
+    <input type="date" id="fecha" required>
+
+    <label for="concepto">Concepto</label>
+    <select id="concepto">
+      <option>Comida</option>
+      <option>Viáticos</option>
+      <option>Papelería</option>
+      <option>Otros</option>
+    </select>
+
+    <label for="monto">Monto</label>
+    <input type="number" id="monto" required>
+
+    <label for="justificacion">Justificación</label>
+    <textarea id="justificacion"></textarea>
+
+    <label for="correo">Correo</label>
+    <input type="email" id="correo" required>
+
+    <button type="submit" class="btn-principal">
+      Enviar Solicitud
+    </button>
+
+  </form>
+
+  <p id="mensaje"></p>
+
+</div>
+
+<script>
+document.getElementById("form").addEventListener("submit", e => {
+  e.preventDefault();
+
+  const datos = {
+    fecha: fecha.value,
+    concepto: concepto.value,
+    monto: monto.value,
+    justificacion: justificacion.value,
+    correo: correo.value
+  };
+
+  google.script.run
+    .withSuccessHandler(msg => {
+      mensaje.innerText = msg;
+      form.reset();
+    })
+    .registrarSolicitud(datos);
+});
+</script>
+
+</body>
+</html>
